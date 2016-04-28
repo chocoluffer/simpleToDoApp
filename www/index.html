@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>To Done</title>
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+
+    <link rel="stylesheet" href="css/normalize.min.css">
+    <link rel="stylesheet" href="css/main.css">
+	
+	<script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+
+</head>
+<body>
+	<h1>
+		Task Tracker!
+	</h1>
+    <p>
+        Enter text to create a new task.<br>
+        Tap a task to move it to completed.
+    </p>
+	<input type="text" id="newToDoText"/>
+	<input type="button" value="Create" onClick="newToDo();"/>
+    <input type="button" value="Undo" onClick="undoDel();"/>
+    <div id="confirmationBox">
+				<h3>
+					Are you sure?
+				</h3>
+                <input type="button" value="No, not really!" onclick="cancelDelete();" />
+				<input type="button" value="Yes, delete the item." onclick="archiveToDo(itemToDelete);" />
+    </div>
+	<h3>
+		To Do:
+	</h3>
+	<ol id="uncompletedTasks">
+	</ol>
+	<h3>
+		Done:
+	</h3>
+	<ol id="completedTasks">
+	</ol>
+</body>
+<script src="js/main.js"></script>
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript" src="js/index.js"></script>
+<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.1.min.js"><\/script>')</script>
+<script>
+    // Began to play around with the idea of the task being created on enter
+//    function createOnEnter {
+//        $(document.getElementById("newToDoTxt").addEventListener("keypress", function(event) {
+//            if (event.keyCode == 13) {
+//                newToDo();
+//            } else {}
+//        }));
+//    }
+	function newToDo() {
+		if (window.localStorage.getItem("myNumber")==null) {
+			window.localStorage.setItem("myNumber", 0);
+			currentI=0;
+		} else {
+			currentI = window.localStorage.getItem("myNumber");
+			currentI++;
+			window.localStorage.setItem("myNumber", currentI);
+		}
+		// get value from the text box and save it to the user's harddrive using a unique name ("task"+whatever number we're on)
+		value = $("#newToDoText").val();
+		setToDo("task"+currentI, value);
+		setToDo("taskStatus"+currentI, 1);
+		
+		//redraw the list:
+		drawTasks();
+	}
+	function setToDo(myName, myValue) {
+		// To store a value
+		window.localStorage.setItem(myName, myValue);
+	}
+	function getToDo(myName) {
+		// To retrieve a value
+		value = window.localStorage.getItem(myName);
+		return value;
+	}
+	function deleteToDo(myName) {
+		// To delete a storage
+		window.localStorage.removeItem(myName);
+		drawTasks();
+        $("#confirmationBox").removeClass("active");
+	}
+    
+    // Setting up archive to track deleted tasks similarly to new tasks
+    function archiveToDo(myName) {
+        // archiveTracker will count upwards as tasks are deleted; the accompanying function undoDel will recover tasks from highest number until it reaches a null
+        if(window.localStorage.getItem("archiveTracker") == null) {
+            window.localStorage.setItem("archiveTracker", 0);
+            currentArchiveTracker=0;
+        } else {
+            currentArchiveTracker = window.localStorage.getItem("archiveTracker");
+            currentArchiveTracker++;
+            window.localStorage.setItem("archiveTracker", currentArchiveTracker);
+        }
+        // Gets the task #
+        taskNum = myName.substring(4);
+        // Changes status to remove it from visablity for the user -> "deleted"
+        window.localStorage.setItem("taskStatus"+taskNum, 3);
+        // Keeps the info for the task, stores it under the number it was deleted
+        window.localStorage.setItem(currentArchiveTracker, myName);
+        drawTasks();
+        $("#confirmationBox").removeClass("active");
+    }
+    
+    // Setting up function that will undo in order of deletion.. 
+    //      more likely to want to recover most recently deleted tasks (not a perfect system, but it'll do)
+    function undoDel () {
+        taskRecover = window.localStorage.getItem("archiveTracker");
+        // What if there is no task to undo? -> alert "no task to recover"
+        if( (window.localStorage.getItem(taskRecover)).indexOf("null") != -1 ) {
+            alert("No task to recover.");
+        } else {
+            myName = window.localStorage.getItem(taskRecover);
+            taskNum = myName.substring(4);
+            window.localStorage.setItem("taskStatus"+taskNum, 1);
+            window.localStorage.setItem(taskRecover, "null");
+            taskRecover = taskRecover-1;
+            window.localStorage.setItem("archiveTracker", taskRecover);
+            drawTasks();
+        }   
+    }
+    
+    // Will clean up user's local storage, while keeping the tasks
+    function tidyTasks() {
+        length = parseInt( window.localStorage.getItem("myNumber") );
+        taskAt = 0;
+        if(length==null) {
+            alert("No tasks to tidy");
+        } else {
+            for(i=0; i<=length; i++) {
+                if(window.localStorage.getItem("task"+i)==null || window.localStorage.getItem("task"+i)=="null") {
+                    //If it's null (meaning no task is assigned to that number), I want taskAt to stay in the same spot
+                } else {
+                    myTask = window.localStorage.getItem("task"+i);
+                    window.localStorage.setItem("task"+taskAt, myTask);
+                    window.localStorage.setItem("task"+i, "null");
+                    taskAt++;
+                }
+            }            
+        }
+        drawTasks();
+    }
+    
+	function updateStatus(myNumber) {
+		if (getToDo("taskStatus"+myNumber) == 1) {
+			window.localStorage.setItem("taskStatus"+myNumber, 2);
+		} else {
+			window.localStorage.setItem("taskStatus"+myNumber, 1);
+		}
+		drawTasks();
+	}
+    function displayDeleteConfirmation(which) {
+        $("#confirmationBox").addClass("active");
+        itemToDelete = which;
+    }
+    function cancelDelete() {
+	   $("#confirmationBox").removeClass("active");
+	}
+	function drawTasks() {
+		// empty variable to hold all the todos about to be drawn
+		var newHTMLforUncompletedTasks =" ";
+		var newHTMLforCompletedTasks =" ";
+		
+		// loop through numbers up to the total number of tasks ever created
+		for(littleLoop = 0; littleLoop <= window.localStorage.getItem("myNumber"); littleLoop++) {
+			// hold the text for the task in the variable "currentTask"
+			currentTask = getToDo("task"+littleLoop);
+			currentTaskStatus = getToDo("taskStatus"+littleLoop);
+			
+			// make sure the currentTask hasn't been deleted
+			if (currentTask != null) {
+				// create some new HTML that has the text for the currentTask in it and make sure it's clickable to delete the task and add that HTML to 
+				// the newHTML variable
+				if(currentTaskStatus == 1) {
+					newHTMLforUncompletedTasks += "<li><input type='checkbox' /><span class='task' onClick = 'javascript: updateStatus("+littleLoop+")'>"+currentTask+"</span> <span class='delete' onClick = 'javascript: displayDeleteConfirmation(\"task"+littleLoop+"\")'>delete</span></li>";
+				} else if (currentTaskStatus == 2) {
+					newHTMLforCompletedTasks += "<li><input type='checkbox' checked /><span class='completeTask' onClick = 'javascript: updateStatus("+littleLoop+")'>"+currentTask+"</span> <span class='delete' onClick = 'javascript: displayDeleteConfirmation(\"task"+littleLoop+"\")'>delete</span></li>";
+				} else if (currentTaskStatus == 3) {
+                    
+                }
+			}
+		}
+		// dump all of the tasks created into the loop into the OL named "tasks" in the html
+		$("#uncompletedTasks").html(newHTMLforUncompletedTasks);
+		$("#completedTasks").html(newHTMLforCompletedTasks);
+	}
+//     when (window.localStorage.getItem("myNumber")==100) {
+//        tidyTasks();
+//    }
+	drawTasks();
+   
+</script>
+</html>

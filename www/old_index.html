@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <!--
+        Customize this policy to fit your own app's needs. For more guidance, see:
+            https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+        Some notes:
+            * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+            * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+            * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+                * Enable inline JS: add 'unsafe-inline' to default-src
+        -->
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+
+        <link rel="stylesheet" href="css/normalize.min.css">
+        <link rel="stylesheet" href="css/main.css">
+		
+		<script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+		
+        <title>To Done</title>
+    </head>
+    <body>
+        <head>
+			<h1>Tasks!</h1>
+			<h2>keep track of your tasks!</h2>
+		</head>
+		<article>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam sodales urna non odio egestas tempor. Nunc vel vehicula ante. Etiam bibendum iaculis libero, eget molestie nisl pharetra in. In semper consequat est, eu porta velit mollis nec.
+			</p>
+			<div id="confirmationBox">
+				<h3>
+					Are you sure?
+				</h3>
+				<input type="button" value="Remove" onclick="deleteItem();" />
+				<input type="button" value="Cancel" onclick="cancelDelete();" />
+			</div>
+			<input type="text" id="newTaskTxt" />
+			<input type="button" value="Create" onclick="createTask();" />
+			<h3>
+				To Do:
+			</h3>
+			<ol id="uncompletedTasks">
+				<li><input type="checkbox" name="task1" id="task1" onclick="toggleCheckbox(this);" /><label for="task1">Review Syllabi</label> <span onclick="displayDeleteConfirmation(this);" class="deleteButton">delete</span></li>
+				<li><input type="checkbox" name="task2" id="task2" onclick="toggleCheckbox(this);" /><label for="task2">Go to IMS 390.V</label> <span onclick="displayDeleteConfirmation(this);" class="deleteButton">delete</span></li>
+				<li><input type="checkbox" name="task3" id="task3" onclick="toggleCheckbox(this);" /><label for="task3">Backup Laptop</label> <span onclick="displayDeleteConfirmation(this);" class="deleteButton">delete</span></li>
+				<li><input type="checkbox" name="task4" id="task4" onclick="toggleCheckbox(this);" /><label for="task4">Buy books &amp; software</label> <span onclick="displayDeleteConfirmation(this);" class="deleteButton">delete</span></li>
+			</ol>
+			<h3>
+				Complete:
+			</h3>
+			<ol id="completedTasks">
+				<li><input type="checkbox" name="task5" id="task5" checked="true" onclick="toggleCheckbox(this);" /><label for="task5">Move to Oxford</label> <span onclick="displayDeleteConfirmation(this);" class="deleteButton">delete</span></li>
+			</ol>
+		</article>
+		<script>
+			function setToDo() {
+				// To store a value
+				window.localStorage.setItem('key', "test");
+				
+			}
+			function getToDo() {
+				// To retrieve a value
+				value = window.localStorage.getItem('key');
+			}
+			function deleteToDo() {
+				// To delete a storage
+				window.localStorage.removeItem('key');
+			}
+			getToDo();
+		</script>
+		<script src="js/main.js"></script>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+		<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.1.min.js"><\/script>')</script>
+		<script>
+			var taskCount = 5;
+			function createTask() {
+				newTask = $("#newTaskTxt").prop("value");
+				newLI='<li><input type="checkbox" name="task'+taskCount+'" id="task'+taskCount+'" onclick="toggleCheckbox(this);" /><label for="task'+taskCount+'">'+newTask+'</label> <span onclick="displayDeleteConfirmation(this);" class="deleteButton">delete</span></li>';
+				$("#uncompletedTasks").append(newLI);
+				navigator.vibrate(3000);
+				taskCount++;
+			}
+			function toggleCheckbox(which) {
+				if($(which).is(":checked")) {
+					$(which).parent().appendTo("#completedTasks");
+				} else {
+					$(which).parent().appendTo("#uncompletedTasks");
+				}
+			}
+			var itemToDelete;
+			function displayDeleteConfirmation(which) {
+				$("#confirmationBox").addClass("active");
+				itemToDelete = which
+			}
+			function cancelDelete() {
+				$("#confirmationBox").removeClass("active");
+			}
+			function deleteItem() {
+				$(itemToDelete).parent().remove();
+				$("#confirmationBox").removeClass("active");
+			}
+		</script>
+    </body>
+</html>
