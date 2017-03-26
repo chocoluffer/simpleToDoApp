@@ -1,5 +1,5 @@
 # Simple Todo Web App
-Developed as an entry project for a native app development class my Junior year.<br>
+Developed as an entry project for a native app development class my Junior year (2015).<br>
 We were given a skeleton project and asked to design it and develop a few additional functions for it.<br><br>
 What I wrote:
 * All of the custom styling (main.css)
